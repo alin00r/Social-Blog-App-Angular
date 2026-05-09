@@ -1,0 +1,111 @@
+<section class="space-y-6">
+  <div class="sb-card flex flex-wrap items-end justify-between gap-4 rounded-3xl px-5 py-6 sm:px-6">
+    <div>
+      <p class="mb-2 text-xs font-semibold uppercase tracking-[0.28em] text-blue-600">
+        Community feed
+      </p>
+      <h1 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Latest Articles</h1>
+      <p class="mt-2 max-w-2xl text-sm text-slate-600">
+        Read what other developers are writing and jump into the conversation.
+      </p>
+    </div>
+
+    <a
+      *ngIf="authService.isAuthenticated()"
+      routerLink="/editor"
+      class="sb-btn-primary rounded-full px-5 py-2.5 text-sm font-semibold"
+      >Create Article</a
+    >
+  </div>
+
+  <p
+    *ngIf="actionMessage"
+    class="rounded-lg border border-emerald-700 bg-emerald-900/30 px-3 py-2 text-sm text-emerald-300"
+  >
+    {{ actionMessage }}
+  </p>
+
+  <div *ngIf="loading" class="sb-card rounded-2xl p-10 text-center text-slate-600">
+    Loading articles...
+  </div>
+
+  <p
+    *ngIf="errorMessage && !loading"
+    class="rounded-lg border border-red-800 bg-red-900/30 p-3 text-red-300"
+  >
+    {{ errorMessage }}
+  </p>
+
+  <p
+    *ngIf="!loading && !errorMessage && articles.length === 0"
+    class="sb-card rounded-2xl p-10 text-center text-slate-600"
+  >
+    No articles found.
+  </p>
+
+  <div class="grid gap-6" *ngIf="!loading && !errorMessage && articles.length > 0">
+    <article
+      *ngFor="let post of articles"
+      class="sb-card group overflow-hidden rounded-3xl transition duration-300 hover:-translate-y-1"
+    >
+      <div class="relative overflow-hidden" *ngIf="post.images?.length">
+        <img
+          *ngFor="let image of post.images || []; let isFirst = first"
+          [src]="image.url"
+          alt="article image"
+          class="h-60 w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+          [class.hidden]="!isFirst"
+        />
+        <div
+          class="absolute inset-0 bg-gradient-to-t from-[#1c2a44]/35 via-transparent to-transparent"
+        ></div>
+        <div
+          class="absolute left-4 top-4 rounded-full bg-white/85 px-3 py-1 text-xs font-semibold text-[#27406f] backdrop-blur"
+        >
+          Featured image
+        </div>
+      </div>
+
+      <div class="p-5 sm:p-6">
+        <div class="mb-4 flex flex-wrap items-start justify-between gap-4">
+          <div class="space-y-3">
+            <div
+              class="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-blue-700"
+            >
+              <span class="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-blue-600"
+                >Article</span
+              >
+              <span
+                class="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-blue-600"
+                >{{ post.createdAt | date: 'mediumDate' }}</span
+              >
+            </div>
+            <h2 class="text-2xl font-semibold tracking-tight text-slate-900">
+              {{ post.title }}
+            </h2>
+            <p class="text-sm text-slate-600">By {{ getAuthorDisplayName(post) }}</p>
+          </div>
+
+          <div class="flex gap-2" *ngIf="canManage(post)">
+            <button
+              type="button"
+              (click)="editArticle(post)"
+              class="sb-btn-outline rounded-full px-4 py-2 text-sm font-medium"
+            >
+              Edit
+            </button>
+            <button
+              type="button"
+              (click)="deleteArticle(post)"
+              class="rounded-full border border-red-300 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+
+        <p class="whitespace-pre-line leading-relaxed text-slate-700">{{ post.content }}</p>
+      </div>
+    </article>
+  </div>
+</section>

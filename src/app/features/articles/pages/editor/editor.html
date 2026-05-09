@@ -1,0 +1,231 @@
+<section class="mx-auto max-w-3xl">
+  <div *ngIf="loading" class="rounded-2xl bg-blue-50 p-6 text-center text-slate-700">
+    <div
+      class="inline-block animate-spin rounded-full border-2 border-blue-600 border-t-transparent h-6 w-6 mb-2"
+    ></div>
+    <p>Loading article...</p>
+  </div>
+
+  <div *ngIf="!loading" class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
+      <div>
+        <p
+          class="mb-2 text-xs font-semibold uppercase tracking-[0.28em] text-blue-600"
+          *ngIf="isEditMode"
+        >
+          ✏️ Edit Mode
+        </p>
+        <h1 class="text-4xl font-bold text-slate-900">
+          {{ isEditMode ? 'Edit Article' : 'Create New Article' }}
+        </h1>
+        <p class="mt-2 text-slate-600">
+          {{
+            isEditMode
+              ? 'Update your article and keep the conversation going.'
+              : 'Share your thoughts with the community.'
+          }}
+        </p>
+      </div>
+      <a
+        *ngIf="isEditMode"
+        routerLink="/articles"
+        class="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition rounded-lg hover:bg-slate-100"
+      >
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 19l-7-7 7-7"
+          ></path>
+        </svg>
+        Back
+      </a>
+    </div>
+
+    <!-- Form -->
+
+    <form
+      [formGroup]="editorForm"
+      (ngSubmit)="onSubmit()"
+      class="space-y-6 rounded-2xl border border-slate-200 bg-white p-6"
+    >
+      <!-- Title Field -->
+      <div>
+        <label class="mb-2 block text-sm font-semibold text-slate-900">Article Title</label>
+        <input
+          formControlName="title"
+          type="text"
+          [class.border-red-300]="
+            editorForm.controls.title.touched && editorForm.controls.title.invalid
+          "
+          class="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-lg text-slate-900 placeholder-slate-400 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+          [placeholder]="
+            isEditMode ? 'Update your title...' : 'Give your article a compelling title...'
+          "
+        />
+        <p
+          class="mt-2 text-sm text-red-600"
+          *ngIf="editorForm.controls.title.touched && editorForm.controls.title.invalid"
+        >
+          Title is required (minimum 3 characters).
+        </p>
+      </div>
+
+      <!-- Content Field -->
+      <div>
+        <label class="mb-2 block text-sm font-semibold text-slate-900">Article Content</label>
+        <textarea
+          formControlName="content"
+          rows="12"
+          [class.border-red-300]="
+            editorForm.controls.content.touched && editorForm.controls.content.invalid
+          "
+          class="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 font-mono text-slate-900 placeholder-slate-400 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 resize-none"
+          [placeholder]="
+            isEditMode
+              ? 'Update your content...'
+              : 'Write your story here... Markdown is supported.'
+          "
+        ></textarea>
+        <p
+          class="mt-2 text-sm text-red-600"
+          *ngIf="editorForm.controls.content.touched && editorForm.controls.content.invalid"
+        >
+          Content is required (minimum 3 characters).
+        </p>
+      </div>
+
+      <!-- Images Section (Create Only) -->
+      <div *ngIf="!isEditMode">
+        <label class="mb-2 block text-sm font-semibold text-slate-900">Featured Images</label>
+
+        <!-- File Upload Input -->
+        <div class="relative mb-4">
+          <input
+            #fileInput
+            type="file"
+            multiple
+            accept="image/*"
+            (change)="onImagesChange($event)"
+            class="hidden"
+            id="image-upload"
+          />
+          <label
+            for="image-upload"
+            class="flex cursor-pointer items-center justify-center gap-3 rounded-lg border-2 border-dashed border-blue-300 bg-blue-50 px-6 py-8 transition hover:border-blue-500 hover:bg-blue-100"
+          >
+            <svg
+              class="h-6 w-6 text-blue-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 4v16m8-8H4"
+              ></path>
+            </svg>
+            <div class="text-center">
+              <p class="text-sm font-semibold text-blue-900">Click to upload images</p>
+              <p class="text-xs text-blue-700">or drag and drop</p>
+            </div>
+          </label>
+        </div>
+
+        <!-- Image Previews -->
+        <div *ngIf="selectedImagePreviews.length > 0" class="mb-4">
+          <p class="mb-3 text-sm font-medium text-slate-700">
+            Selected:
+            <span class="font-bold text-blue-600">{{ selectedImagePreviews.length }}</span> image(s)
+          </p>
+          <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+            <div
+              *ngFor="let item of selectedImagePreviews; let i = index"
+              class="group relative overflow-hidden rounded-lg border border-slate-200 bg-slate-50 shadow-sm transition hover:shadow-md"
+            >
+              <img [src]="item.preview" alt="preview" class="h-24 w-full object-cover" />
+              <div class="absolute inset-0 bg-black/0 transition group-hover:bg-black/20"></div>
+              <button
+                type="button"
+                (click)="removeImage(i)"
+                class="absolute right-1 top-1 rounded-full bg-red-500 p-1 opacity-0 transition group-hover:opacity-100"
+              >
+                <svg class="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fill-rule="evenodd"
+                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                    clip-rule="evenodd"
+                  ></path>
+                </svg>
+              </button>
+              <div
+                class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/40 to-transparent p-2"
+              >
+                <p class="text-xs font-medium text-white">{{ formatFileSize(item.file.size) }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="text-xs text-slate-600">Backend requires at least one image for new article.</p>
+      </div>
+
+      <!-- Group Field (Optional) -->
+      <div>
+        <label class="mb-2 block text-sm font-semibold text-slate-900">Group (optional)</label>
+        <input
+          formControlName="group"
+          type="text"
+          class="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+          placeholder="Assign to a group (if applicable)"
+        />
+      </div>
+
+      <!-- Error Message -->
+      <div
+        *ngIf="errorMessage"
+        class="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-700"
+      >
+        {{ errorMessage }}
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex gap-3 border-t border-slate-200 pt-6">
+        <button
+          type="submit"
+          [disabled]="saving || editorForm.invalid"
+          [class.opacity-60]="saving || editorForm.invalid"
+          class="flex-1 rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+        >
+          <svg
+            *ngIf="!saving"
+            class="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M5 13l4 4L19 7"
+            ></path>
+          </svg>
+          <span>{{
+            saving ? 'Saving...' : isEditMode ? 'Update Article' : 'Publish Article'
+          }}</span>
+        </button>
+        <a
+          routerLink="/articles"
+          class="px-4 py-3 rounded-lg border border-slate-300 font-semibold text-slate-700 transition hover:bg-slate-50 inline-flex items-center"
+        >
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+</section>

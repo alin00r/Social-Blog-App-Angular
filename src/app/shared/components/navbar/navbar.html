@@ -1,0 +1,41 @@
+<header class="site-header">
+  <nav class="site-nav">
+    <a routerLink="/" class="brand" aria-label="NourBlog home">
+      <span class="brand-mark">✦</span>
+      <span class="brand-text">
+        <span class="brand-Name">NourBlog</span>
+        <span class="brand-tagline">Share your thoughts</span>
+      </span>
+    </a>
+
+    <div class="nav-links" aria-label="Primary navigation">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+        >Home</a
+      >
+      <a routerLink="/feed" routerLinkActive="active">Feed</a>
+      <a *ngIf="currentUser$ | async" routerLink="/groups" routerLinkActive="active">Groups</a>
+      <a routerLink="/articles" routerLinkActive="active">Articles</a>
+      <a *ngIf="currentUser$ | async" routerLink="/editor" routerLinkActive="active">Write</a>
+    </div>
+
+    <div class="auth-area" *ngIf="currentUser$ | async as user; else guestLinks">
+      <a routerLink="/users" class="user-chip">
+        <img
+          *ngIf="user.image || user.profileImage || user.avatar"
+          [src]="user.image || user.profileImage || user.avatar"
+          [alt]="user.name || user.username || user.email"
+          class="user-avatar-img"
+        />
+        <span class="user-name">{{ user.name || user.username || user.email }}</span>
+      </a>
+      <button type="button" (click)="logout()" class="secondary-button">Logout</button>
+    </div>
+
+    <ng-template #guestLinks>
+      <div class="auth-area">
+        <a routerLink="/login" class="secondary-button">Login</a>
+        <a routerLink="/register" class="primary-button">Join</a>
+      </div>
+    </ng-template>
+  </nav>
+</header>

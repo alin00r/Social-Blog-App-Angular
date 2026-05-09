@@ -1,0 +1,45 @@
+<section class="sb-card mx-auto max-w-md rounded-2xl p-6">
+  <h1 class="mb-2 text-2xl font-bold text-[#1b2742]">Verify Code</h1>
+  <p class="mb-6 text-sm text-[#637394]">
+    Enter the verification code that was sent to your email.
+  </p>
+
+  <form [formGroup]="verifyCodeForm" (ngSubmit)="onSubmit()" class="space-y-4">
+    <div>
+      <label class="mb-1 block text-sm font-medium text-[#51627f]">Reset Code</label>
+      <input
+        formControlName="resetCode"
+        type="text"
+        placeholder="Enter 6-digit code"
+        class="sb-input w-full rounded-lg px-3 py-2"
+      />
+      <p
+        class="mt-1 text-sm text-red-500"
+        *ngIf="
+          verifyCodeForm.controls.resetCode.touched && verifyCodeForm.controls.resetCode.invalid
+        "
+      >
+        Reset code is required.
+      </p>
+    </div>
+
+    <button
+      type="submit"
+      [disabled]="loading"
+      class="sb-btn-primary w-full rounded-lg px-4 py-2 font-medium disabled:opacity-60 min-h-10 flex items-center justify-center"
+    >
+      <span
+        *ngIf="loading"
+        class="inline-block mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"
+      ></span>
+      {{ loading ? 'Verifying' : 'Verify Code' }}
+    </button>
+  </form>
+
+  <div class="mt-6 text-center">
+    <p class="text-sm text-[#637394]">
+      Didn't receive a code?
+      <a routerLink="/forgot-password" class="sb-link font-medium"> Request a new one </a>
+    </p>
+  </div>
+</section>

@@ -1,0 +1,94 @@
+<section class="landing-page sb-grid-bg">
+  <div class="landing-hero sb-card">
+    <div class="landing-hero-copy">
+      <p class="landing-kicker">Social Blog</p>
+      <h1>Everything you need to share your story in a clean, modern space.</h1>
+      <p class="landing-summary">
+        Post articles, join communities, and start conversations on a sleek layout that looks great
+        on any device.
+      </p>
+
+      <div class="landing-actions">
+        <a routerLink="/articles" class="sb-btn-primary landing-primary-action">Explore Articles</a>
+        <a
+          [routerLink]="authService.isAuthenticated() ? '/editor' : '/register'"
+          class="sb-btn-outline landing-secondary-action"
+        >
+          {{ authService.isAuthenticated() ? 'Write a Post' : 'Join the Community' }}
+        </a>
+      </div>
+      <div class="landing-trust-row">
+        <div class="landing-trust-item">
+          <span>01</span>
+          <p>Fast article workflow</p>
+        </div>
+        <div class="landing-trust-item">
+          <span>02</span>
+          <p>Group-driven discovery</p>
+        </div>
+        <div class="landing-trust-item">
+          <span>03</span>
+          <p>Image-rich storytelling</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="landing-hero-panel">
+      <div class="hero-mockup hero-mockup-top">
+        <div class="hero-mockup-label">Live feed</div>
+        <div class="hero-mockup-title">Fresh ideas from your network</div>
+        <div class="hero-mockup-bar">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+
+      <div class="hero-metrics">
+        <div class="hero-metric">
+          <strong>4s</strong>
+          <span>image auto-play</span>
+        </div>
+        <div class="hero-metric">
+          <strong>Groups</strong>
+          <span>discover by community</span>
+        </div>
+        <div class="hero-metric">
+          <strong>Clean</strong>
+          <span>write and edit faster</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="landing-grid">
+    <article class="landing-feature sb-card">
+      <div class="landing-feature-icon">✦</div>
+      <h2>Premium Design</h2>
+      <p>Bold visuals and clean space that make your content pop.</p>
+    </article>
+    <article class="landing-feature sb-card">
+      <div class="landing-feature-icon">▣</div>
+      <h2>Community Focused</h2>
+      <p>Find your groups and jump into the mix instantly.</p>
+    </article>
+
+    <article class="landing-feature sb-card">
+      <div class="landing-feature-icon">☼</div>
+      <h2>Made to Create</h2>
+      <p>Pro tools for articles and images, built for speed.</p>
+    </article>
+  </div>
+
+  <div class="landing-cta sb-card">
+    <div>
+      <p class="landing-kicker">Ready when you are</p>
+      <h2>Read, post, and make it yours.</h2>
+    </div>
+
+    <div class="landing-cta-actions">
+      <a routerLink="/feed" class="sb-btn-outline landing-cta-link">Open Feed</a>
+      <a routerLink="/articles" class="sb-btn-primary landing-cta-link">Browse Articles</a>
+    </div>
+  </div>
+</section>

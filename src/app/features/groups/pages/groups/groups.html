@@ -1,0 +1,436 @@
+<section class="mx-auto w-full max-w-7xl space-y-8 px-4 py-6 sm:px-6 lg:px-8">
+  <!-- Header -->
+  <header
+    class="overflow-hidden rounded-[28px] border border-slate-200/80 bg-white/90 p-6 shadow-sm backdrop-blur sm:p-8"
+  >
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div class="max-w-2xl">
+        <p class="mb-2 text-xs font-semibold uppercase tracking-[0.24em] text-blue-600">Groups</p>
+        <h1 class="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+          Group management
+        </h1>
+        <p class="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
+          Create groups, update details, manage members, control permissions, and review group posts
+          from one place.
+        </p>
+      </div>
+
+      <div
+        *ngIf="selectedGroup"
+        class="min-w-[260px] rounded-2xl border border-blue-100 bg-blue-50/70 px-4 py-4"
+      >
+        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-blue-700">Selected group</p>
+        <h2 class="mt-2 text-lg font-semibold text-slate-900">
+          {{ selectedGroup.title }}
+        </h2>
+        <p class="mt-1 line-clamp-2 text-sm text-slate-600">
+          {{ selectedGroup.description }}
+        </p>
+
+        <div class="mt-4 flex flex-wrap gap-2">
+          <span
+            class="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-700 ring-1 ring-slate-200"
+          >
+            Members: {{ selectedGroup.members?.length || 0 }}
+          </span>
+          <span
+            class="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-700 ring-1 ring-slate-200"
+          >
+            Admins: {{ selectedGroup.admins?.length || 0 }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Status -->
+  <div class="space-y-3" *ngIf="groupsLoading || groupsError || groupsSuccess">
+    <p
+      *ngIf="groupsLoading"
+      class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-600"
+    >
+      Processing request...
+    </p>
+
+    <p
+      *ngIf="groupsError"
+      class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700"
+    >
+      {{ groupsError }}
+    </p>
+
+    <p
+      *ngIf="groupsSuccess"
+      class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700"
+    >
+      {{ groupsSuccess }}
+    </p>
+  </div>
+
+  <!-- Cards -->
+  <div class="grid gap-6 xl:grid-cols-12">
+    <!-- All Groups -->
+    <article class="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm xl:col-span-12">
+      <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 class="text-lg font-semibold text-slate-900">All groups</h2>
+          <p class="mt-1 text-sm text-slate-500">
+            Select any group card to edit it, then use the other sections for members and posts.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="inline-flex h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-5 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+          (click)="loadAllGroups()"
+        >
+          Refresh groups
+        </button>
+      </div>
+
+      <div
+        *ngIf="groups.length === 0"
+        class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-5 text-sm text-slate-600"
+      >
+        No groups yet. Create your first group below.
+      </div>
+
+      <div
+        *ngIf="groups.length > 0"
+        class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+      >
+        <article
+          *ngFor="let group of groups"
+          class="rounded-2xl border p-4 shadow-sm transition"
+          [ngClass]="
+            selectedGroup?._id === group._id
+              ? 'border-blue-300 bg-blue-50/60'
+              : 'border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white'
+          "
+        >
+          <img
+            *ngIf="group.groupImg"
+            [src]="group.groupImg"
+            alt="Group image"
+            class="mb-3 h-28 w-full rounded-xl object-cover"
+          />
+
+          <h3 class="text-base font-semibold text-slate-900">{{ group.title }}</h3>
+          <p class="mt-2 line-clamp-3 text-sm text-slate-600">{{ group.description }}</p>
+
+          <div class="mt-3 flex flex-wrap gap-2 text-xs">
+            <span
+              class="rounded-full bg-white px-2.5 py-1 font-medium text-slate-700 ring-1 ring-slate-200"
+            >
+              Members: {{ group.members?.length || 0 }}
+            </span>
+            <span
+              class="rounded-full bg-white px-2.5 py-1 font-medium text-slate-700 ring-1 ring-slate-200"
+            >
+              Admins: {{ group.admins?.length || 0 }}
+            </span>
+          </div>
+
+          <div class="mt-4 flex gap-2">
+            <button
+              type="button"
+              class="inline-flex h-10 flex-1 items-center justify-center rounded-xl bg-slate-900 px-3 text-sm font-medium text-white transition hover:bg-slate-800"
+              (click)="selectGroup(group)"
+            >
+              Update
+            </button>
+            <button
+              type="button"
+              class="inline-flex h-10 flex-1 items-center justify-center rounded-xl border border-red-200 bg-red-50 px-3 text-sm font-medium text-red-700 transition hover:bg-red-100"
+              (click)="deleteGroupFromCard(group)"
+            >
+              Delete
+            </button>
+          </div>
+        </article>
+      </div>
+    </article>
+
+    <!-- Create -->
+    <article class="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm xl:col-span-12">
+      <div class="mb-5">
+        <h2 class="text-lg font-semibold text-slate-900">Create group</h2>
+        <p class="mt-1 text-sm text-slate-500">
+          Add a new group with title, description, and cover image.
+        </p>
+      </div>
+
+      <div class="grid gap-4 md:grid-cols-2">
+        <div class="md:col-span-1">
+          <label class="mb-2 block text-sm font-medium text-slate-700">Title</label>
+          <input
+            class="h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+            type="text"
+            placeholder="Group title"
+            [(ngModel)]="createTitle"
+          />
+        </div>
+
+        <div class="md:col-span-1">
+          <label class="mb-2 block text-sm font-medium text-slate-700">Image</label>
+          <input
+            class="block h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-200"
+            type="file"
+            accept="image/*"
+            (change)="onCreateGroupImageSelected($event)"
+          />
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="mb-2 block text-sm font-medium text-slate-700">Description</label>
+          <textarea
+            class="min-h-[120px] w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+            rows="4"
+            placeholder="Write a short description for the group"
+            [(ngModel)]="createDescription"
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="mt-5 flex justify-end">
+        <button
+          type="button"
+          class="inline-flex h-11 items-center justify-center rounded-xl bg-blue-600 px-5 text-sm font-medium text-white transition hover:bg-blue-700"
+          (click)="createGroup()"
+        >
+          Create group
+        </button>
+      </div>
+    </article>
+
+    <!-- Update -->
+    <article
+      *ngIf="isUpdateGroupOpen && selectedGroup"
+      class="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm xl:col-span-6"
+    >
+      <div class="mb-5">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h2 class="text-lg font-semibold text-slate-900">Update group</h2>
+            <p class="mt-1 text-sm text-slate-500">
+              Edit the selected group or remove it permanently.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            class="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 bg-white px-3 text-xs font-medium text-slate-700 transition hover:bg-slate-100"
+            (click)="closeUpdateGroup()"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="mb-2 block text-sm font-medium text-slate-700">New title</label>
+          <input
+            class="h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+            type="text"
+            placeholder="Updated title"
+            [(ngModel)]="updateTitle"
+          />
+        </div>
+
+        <div>
+          <label class="mb-2 block text-sm font-medium text-slate-700">New description</label>
+          <textarea
+            class="min-h-[120px] w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+            rows="4"
+            placeholder="Updated description"
+            [(ngModel)]="updateDescription"
+          ></textarea>
+        </div>
+
+        <div>
+          <label class="mb-2 block text-sm font-medium text-slate-700">Update image</label>
+          <input
+            class="block h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-200"
+            type="file"
+            accept="image/*"
+            (change)="onUpdateGroupImageSelected($event)"
+          />
+        </div>
+
+        <div class="flex flex-wrap gap-3 pt-2">
+          <button
+            type="button"
+            class="inline-flex h-11 items-center justify-center rounded-xl bg-slate-900 px-5 text-sm font-medium text-white transition hover:bg-slate-800"
+            (click)="updateGroup()"
+          >
+            Update group
+          </button>
+
+          <button
+            type="button"
+            class="inline-flex h-11 items-center justify-center rounded-xl border border-red-200 bg-red-50 px-5 text-sm font-medium text-red-700 transition hover:bg-red-100"
+            (click)="deleteGroup()"
+          >
+            Delete group
+          </button>
+        </div>
+      </div>
+    </article>
+
+    <article
+      *ngIf="!isUpdateGroupOpen || !selectedGroup"
+      class="rounded-[24px] border border-dashed border-slate-300 bg-slate-50 p-5 shadow-sm xl:col-span-6"
+    >
+      <h2 class="text-lg font-semibold text-slate-900">Update group</h2>
+      <p class="mt-2 text-sm text-slate-600">
+        Click Update on any group card to open the update component.
+      </p>
+    </article>
+
+    <!-- Members -->
+    <article class="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm xl:col-span-6">
+      <div class="mb-5">
+        <h2 class="text-lg font-semibold text-slate-900">Members & permissions</h2>
+        <p class="mt-1 text-sm text-slate-500">Add or remove members and update access rules.</p>
+      </div>
+
+      <div class="space-y-5">
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <label class="mb-2 block text-sm font-medium text-slate-700">Add member</label>
+          <div class="flex flex-col gap-3 sm:flex-row">
+            <input
+              class="h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+              type="text"
+              placeholder="User ID"
+              [(ngModel)]="memberUserId"
+            />
+            <button
+              type="button"
+              class="inline-flex h-11 items-center justify-center rounded-xl bg-slate-900 px-5 text-sm font-medium text-white transition hover:bg-slate-800"
+              (click)="addMember()"
+            >
+              Add
+            </button>
+          </div>
+        </div>
+
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <label class="mb-2 block text-sm font-medium text-slate-700">Remove member</label>
+          <div class="flex flex-col gap-3 sm:flex-row">
+            <input
+              class="h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+              type="text"
+              placeholder="User ID"
+              [(ngModel)]="removeMemberUserId"
+            />
+            <button
+              type="button"
+              class="inline-flex h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-5 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+              (click)="removeMember()"
+            >
+              Remove
+            </button>
+          </div>
+        </div>
+
+        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <label class="mb-2 block text-sm font-medium text-slate-700">Permission user ID</label>
+          <input
+            class="mb-3 h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+            type="text"
+            placeholder="User ID"
+            [(ngModel)]="permissionUserId"
+          />
+
+          <label class="mb-2 block text-sm font-medium text-slate-700">Permissions</label>
+          <input
+            class="h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+            type="text"
+            placeholder="read,write"
+            [(ngModel)]="permissionInput"
+          />
+
+          <button
+            type="button"
+            class="mt-3 inline-flex h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-5 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+            (click)="updatePermissions()"
+          >
+            Update permissions
+          </button>
+        </div>
+      </div>
+    </article>
+
+    <!-- Posts -->
+    <article class="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm xl:col-span-12">
+      <div class="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h2 class="text-lg font-semibold text-slate-900">Group posts</h2>
+          <p class="mt-1 text-sm text-slate-500">
+            Browse all posts for the selected group or open a specific post.
+          </p>
+        </div>
+
+        <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <button
+            type="button"
+            class="inline-flex h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-5 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+            (click)="loadGroupPosts()"
+          >
+            Load posts
+          </button>
+
+          <input
+            class="h-11 min-w-[220px] rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+            type="text"
+            placeholder="Enter post ID"
+            [(ngModel)]="groupPostId"
+          />
+
+          <button
+            type="button"
+            class="inline-flex h-11 items-center justify-center rounded-xl bg-slate-900 px-5 text-sm font-medium text-white transition hover:bg-slate-800"
+            (click)="loadGroupPostById()"
+          >
+            Get post
+          </button>
+        </div>
+      </div>
+
+      <div
+        *ngIf="groupPostsLoading"
+        class="mb-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-600"
+      >
+        Loading posts...
+      </div>
+
+      <article
+        *ngIf="selectedGroupPost"
+        class="mb-5 rounded-2xl border border-blue-100 bg-blue-50/60 p-4"
+      >
+        <p class="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-blue-700">
+          Selected post
+        </p>
+        <h3 class="text-base font-semibold text-slate-900">
+          {{ selectedGroupPost.title }}
+        </h3>
+        <p class="mt-2 text-sm leading-6 text-slate-600">
+          {{ selectedGroupPost.content }}
+        </p>
+      </article>
+
+      <div *ngIf="groupPosts.length > 0" class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <article
+          *ngFor="let gp of groupPosts"
+          class="rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:border-slate-300 hover:bg-white"
+        >
+          <h4 class="text-base font-semibold text-slate-900">{{ gp.title }}</h4>
+          <p class="mt-2 text-sm leading-6 text-slate-600">
+            {{ gp.content }}
+          </p>
+        </article>
+      </div>
+    </article>
+  </div>
+</section>

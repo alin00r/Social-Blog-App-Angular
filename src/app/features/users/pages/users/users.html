@@ -1,0 +1,121 @@
+<section class="space-y-6">
+  <div class="sb-card rounded-3xl px-5 py-6 sm:px-6">
+    <p class="mb-2 text-xs font-semibold uppercase tracking-[0.28em] text-[#2f6cf6]">
+      User account
+    </p>
+    <h1 class="text-3xl font-bold tracking-tight text-[#1b2742] sm:text-4xl">
+      Manage your profile
+    </h1>
+    <p class="mt-2 max-w-2xl text-sm text-[#64728f]">
+      Update your name, email, profile image, password, or deactivate your account from one place.
+    </p>
+  </div>
+
+  <div *ngIf="currentUser" class="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+    <div class="sb-card space-y-6 rounded-3xl p-6">
+      <div class="flex items-center justify-between gap-4 border-b border-[#d7e3ff] pb-5">
+        <div class="flex items-center gap-4">
+          <div
+            *ngIf="currentUser.image || currentUser.profileImage || currentUser.avatar"
+            class="profile-avatar-large"
+          >
+            <img
+              [src]="currentUser.image || currentUser.profileImage || currentUser.avatar"
+              [alt]="currentUser.name"
+              class="profile-avatar-img"
+            />
+          </div>
+          <div>
+            <p class="text-sm text-[#64728f]">Signed in as</p>
+            <h2 class="text-2xl font-semibold text-[#1b2742]">{{ currentUser.name }}</h2>
+            <p class="text-sm text-[#4f5f7d]">{{ currentUser.email }}</p>
+          </div>
+        </div>
+        <div class="rounded-2xl border border-[#d7e3ff] bg-[#f4f8ff] px-4 py-3 text-right">
+          <p class="text-xs uppercase tracking-[0.2em] text-[#64728f]">Role</p>
+          <p class="text-sm font-semibold text-[#29406b]">{{ currentUser.role || 'user' }}</p>
+        </div>
+      </div>
+
+      <form [formGroup]="profileForm" (ngSubmit)="updateProfile()" class="space-y-4">
+        <div>
+          <label class="mb-1 block text-sm font-medium text-[#51627f]">Name</label>
+          <input
+            formControlName="name"
+            type="text"
+            class="sb-input w-full rounded-xl px-3 py-2.5"
+          />
+        </div>
+
+        <div>
+          <label class="mb-1 block text-sm font-medium text-[#51627f]">Email</label>
+          <input
+            formControlName="email"
+            type="email"
+            class="sb-input w-full rounded-xl px-3 py-2.5"
+          />
+        </div>
+
+        <div>
+          <label class="mb-1 block text-sm font-medium text-[#51627f]">Profile Image</label>
+          <input
+            type="file"
+            accept="image/*"
+            (change)="onProfileImageChange($event)"
+            class="block w-full rounded-xl border border-[#cddbf8] bg-white px-3 py-2.5 text-sm text-[#51627f] file:mr-4 file:rounded-lg file:border-0 file:bg-[#2f6cf6] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-[#245be0]"
+          />
+        </div>
+
+        <button
+          type="submit"
+          [disabled]="profileLoading"
+          class="sb-btn-primary rounded-full px-5 py-2.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {{ profileLoading ? 'Saving...' : 'Update Profile' }}
+        </button>
+      </form>
+    </div>
+
+    <div class="space-y-6">
+      <div class="sb-card rounded-3xl p-6">
+        <h2 class="text-xl font-semibold text-[#1b2742]">Change Password</h2>
+        <p class="mt-1 text-sm text-[#64728f]">Use a strong password and keep it private.</p>
+
+        <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="mt-5 space-y-4">
+          <div>
+            <label class="mb-1 block text-sm font-medium text-[#51627f]">New Password</label>
+            <input
+              formControlName="newPassword"
+              type="password"
+              class="sb-input w-full rounded-xl px-3 py-2.5"
+            />
+          </div>
+
+          <button
+            type="submit"
+            [disabled]="passwordLoading"
+            class="sb-btn-outline rounded-full px-5 py-2.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {{ passwordLoading ? 'Updating...' : 'Change Password' }}
+          </button>
+        </form>
+      </div>
+
+      <div class="rounded-3xl border border-rose-200 bg-rose-50 p-6 shadow-sm">
+        <h2 class="text-xl font-semibold text-rose-700">Danger Zone</h2>
+        <p class="mt-1 text-sm text-rose-600">
+          Deactivate your account. This action can’t be undone.
+        </p>
+
+        <button
+          type="button"
+          (click)="deleteAccount()"
+          [disabled]="deleteLoading"
+          class="mt-5 rounded-full border border-rose-200 bg-rose-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {{ deleteLoading ? 'Deactivating...' : 'Deactivate Account' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</section>

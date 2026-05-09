@@ -1,0 +1,142 @@
+<section class="feed-layout">
+  <div class="feed-main">
+    <div class="feed-hero sb-card">
+      <p class="feed-kicker">Public feed</p>
+      <h1>Community timeline</h1>
+      <p>Posts are shown in a social-style stream, similar to Facebook cards.</p>
+    </div>
+
+    <div *ngIf="loading" class="sb-card feed-state">Loading feed...</div>
+
+    <p *ngIf="errorMessage && !loading" class="feed-error">{{ errorMessage }}</p>
+
+    <p *ngIf="!loading && !errorMessage && posts.length === 0" class="sb-card feed-state">
+      No posts available in feed.
+    </p>
+
+    <div class="feed-list" *ngIf="!loading && !errorMessage && posts.length > 0">
+      <article *ngFor="let post of posts" class="feed-card sb-card">
+        <header class="feed-card-header">
+          <div class="feed-avatar">
+            <img
+              *ngIf="getAuthorAvatar(post)"
+              [src]="getAuthorAvatar(post)"
+              [alt]="getAuthorName(post)"
+            />
+            <span *ngIf="!getAuthorAvatar(post)">{{ getPostInitial(post) }}</span>
+          </div>
+          <div class="feed-meta">
+            <p class="feed-author">{{ getAuthorName(post) }}</p>
+            <p class="feed-date">{{ post.createdAt | date: 'medium' }}</p>
+          </div>
+        </header>
+
+        <div class="feed-content">
+          <h2>{{ post.title }}</h2>
+          <p>{{ post.content }}</p>
+        </div>
+
+        <div
+          *ngIf="post.images?.length"
+          class="feed-image-slider"
+          (mouseenter)="pauseAutoPlay(getPostId(post))"
+          (mouseleave)="resumeAutoPlay(getPostId(post), post.images?.length || 0)"
+        >
+          <div class="feed-image-container">
+            <img [src]="getCurrentImage(post)" alt="post image" class="feed-image" />
+
+            <div *ngIf="(post.images?.length || 0) > 1" class="feed-image-counter">
+              {{ getImageIndex(getPostId(post)) + 1 }} / {{ post.images?.length }}
+              <span class="auto-play-indicator" *ngIf="autoPlayActive.get(getPostId(post))"> </span>
+            </div>
+          </div>
+
+          <div *ngIf="(post.images?.length || 0) > 1" class="feed-image-indicators">
+            <button
+              *ngFor="let img of post.images; let i = index"
+              type="button"
+              class="indicator"
+              [class.active]="getImageIndex(getPostId(post)) === i"
+              (click)="setImageIndex(getPostId(post), i)"
+              [attr.aria-label]="'Go to image ' + (i + 1)"
+            ></button>
+          </div>
+
+          <div *ngIf="(post.images?.length || 0) > 1" class="feed-image-controls">
+            <button
+              type="button"
+              (click)="prevImage(getPostId(post), post.images?.length || 0)"
+              class="feed-image-btn-prev-bottom"
+              aria-label="Previous image"
+            >
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 19l-7-7 7-7"
+                ></path>
+              </svg>
+              Previous
+            </button>
+
+            <button
+              type="button"
+              (click)="nextImage(getPostId(post), post.images?.length || 0)"
+              class="feed-image-btn-next-bottom"
+              aria-label="Next image"
+            >
+              Next
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5l7 7-7 7"
+                ></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <aside class="groups-panel">
+    <div class="groups-card sb-card">
+      <div class="groups-card-header">
+        <p class="feed-kicker">Groups</p>
+        <h2>Your groups</h2>
+        <p>Scroll through the groups you are part of and open one to see its posts.</p>
+      </div>
+
+      <div *ngIf="allGroupsLoading" class="groups-state">Loading groups...</div>
+      <div *ngIf="!allGroupsLoading && allGroups.length === 0" class="groups-state">
+        No groups available.
+      </div>
+
+      <div
+        *ngIf="!allGroupsLoading && allGroups.length > 0"
+        class="groups-strip"
+        aria-label="Groups list"
+      >
+        <button
+          *ngFor="let group of allGroups"
+          type="button"
+          class="group-tile"
+          [class.active]="selectedGroupId === group._id"
+          (click)="openGroup(group._id)"
+        >
+          <div class="group-tile-image">
+            <img *ngIf="getGroupImage(group)" [src]="getGroupImage(group)" [alt]="group.title" />
+            <span *ngIf="!getGroupImage(group)">G</span>
+          </div>
+          <div class="group-tile-body">
+            <p class="group-tile-title">{{ group.title }}</p>
+            <p class="group-tile-desc">{{ getGroupSummary(group) }}</p>
+          </div>
+        </button>
+      </div>
+    </div>
+  </aside>
+</section>

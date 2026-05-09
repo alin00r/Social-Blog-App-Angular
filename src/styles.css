@@ -1,0 +1,85 @@
+@import 'ngx-toastr/toastr';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --sb-bg: #f4f7ff;
+  --sb-bg-soft: #eef3ff;
+  --sb-panel: #ffffff;
+  --sb-panel-2: #f7faff;
+  --sb-border: #d7e3ff;
+  --sb-text: #1b2437;
+  --sb-muted: #64728f;
+  --sb-primary: #2f6cf6;
+  --sb-primary-hover: #245be0;
+}
+
+body {
+  @apply transition-colors duration-300;
+  background:
+    radial-gradient(circle at 10% -10%, #adc7ff80, transparent 32%),
+    radial-gradient(circle at 90% 115%, #c9dcff80, transparent 35%), var(--sb-bg);
+  color: var(--sb-text);
+}
+
+.sb-grid-bg {
+  position: relative;
+}
+
+.sb-grid-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(90, 124, 188, 0.17) 0.9px, transparent 0.9px);
+  background-size: 14px 14px;
+  opacity: 0.2;
+}
+
+.sb-card {
+  border: 1px solid var(--sb-border);
+  background: linear-gradient(160deg, #ffffff, #f8fbff);
+  box-shadow: 0 14px 30px rgba(52, 88, 156, 0.12);
+}
+
+.sb-input {
+  border: 1px solid #cddbf8;
+  background: #ffffff;
+  color: #1f2a44;
+}
+
+.sb-input:focus {
+  outline: none;
+  border-color: var(--sb-primary);
+  box-shadow: 0 0 0 3px rgba(38, 98, 234, 0.2);
+}
+
+.sb-btn-primary {
+  background: linear-gradient(135deg, #2f6cf6 0%, #3b83ff 100%);
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(47, 108, 246, 0.28);
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.sb-btn-primary:hover {
+  background: var(--sb-primary-hover);
+  transform: translateY(-1px);
+}
+
+.sb-btn-outline {
+  border: 1px solid #bdd0f8;
+  color: #2b3f66;
+  background: #f6f9ff;
+}
+
+.sb-link {
+  color: #2f6cf6;
+}
+
+.sb-link:hover {
+  color: #1f56d9;
+}

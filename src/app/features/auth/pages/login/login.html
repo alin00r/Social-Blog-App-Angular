@@ -1,0 +1,54 @@
+<section class="sb-card mx-auto max-w-md rounded-2xl p-6">
+  <h1 class="mb-6 text-2xl font-bold text-[#1b2742]">Welcome back</h1>
+
+  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-4">
+    <div>
+      <label class="mb-1 block text-sm font-medium text-[#51627f]">Email</label>
+      <input formControlName="email" type="email" class="sb-input w-full rounded-lg px-3 py-2" />
+      <p
+        class="mt-1 text-sm text-red-500"
+        *ngIf="loginForm.controls.email.touched && loginForm.controls.email.invalid"
+      >
+        Valid email is required.
+      </p>
+    </div>
+
+    <div>
+      <label class="mb-1 block text-sm font-medium text-[#51627f]">Password</label>
+      <input
+        formControlName="password"
+        type="password"
+        class="sb-input w-full rounded-lg px-3 py-2"
+      />
+      <p
+        class="mt-1 text-sm text-red-500"
+        *ngIf="loginForm.controls.password.touched && loginForm.controls.password.invalid"
+      >
+        Password is required.
+      </p>
+    </div>
+
+    <button
+      type="submit"
+      [disabled]="loading"
+      class="sb-btn-primary w-full rounded-lg px-4 py-2 font-medium disabled:opacity-60 min-h-10 flex items-center justify-center"
+    >
+      <span
+        *ngIf="loading"
+        class="inline-block mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"
+      ></span>
+      {{ loading ? 'Loading' : 'Login' }}
+    </button>
+
+    <div class="flex items-center justify-between text-sm">
+      <a routerLink="/forgot-password" class="sb-link font-medium"> Forgot Password? </a>
+    </div>
+  </form>
+
+  <div class="mt-6 text-center">
+    <p class="text-sm text-[#637394]">
+      Don't have an account?
+      <a routerLink="/register" class="sb-link font-medium"> Create one </a>
+    </p>
+  </div>
+</section>
