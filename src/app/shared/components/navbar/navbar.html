@@ -21,8 +21,8 @@
     <div class="auth-area" *ngIf="currentUser$ | async as user; else guestLinks">
       <a routerLink="/users" class="user-chip">
         <img
-          *ngIf="user.image || user.profileImage || user.avatar"
-          [src]="user.image || user.profileImage || user.avatar"
+          *ngIf="user.profileImg"
+          [src]="user.profileImg"
           [alt]="user.name || user.username || user.email"
           class="user-avatar-img"
         />

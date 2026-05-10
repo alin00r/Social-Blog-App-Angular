@@ -19,7 +19,25 @@ const routes: Routes = [
   { path: 'verify-code', component: VerifyCode },
   { path: 'reset-password', component: ResetPassword },
   { path: 'users', component: Users, canActivate: [authGuard] },
+  {
+    path: 'feed/group/:id',
+    loadComponent: () =>
+      import('./features/articles/pages/group-feed/group-feed').then((m) => m.GroupFeed),
+    canActivate: [authGuard],
+  },
   { path: 'feed', loadComponent: () => import('./features/articles/pages/feed/feed').then((m) => m.Feed) },
+  {
+    path: 'groups/create',
+    loadComponent: () =>
+      import('./features/groups/pages/create-group/create-group').then((m) => m.CreateGroupPage),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'groups/update/:id',
+    loadComponent: () =>
+      import('./features/groups/pages/update-group/update-group').then((m) => m.UpdateGroupPage),
+    canActivate: [authGuard],
+  },
   {
     path: 'groups',
     loadComponent: () =>

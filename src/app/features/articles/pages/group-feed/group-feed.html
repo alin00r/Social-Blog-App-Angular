@@ -1,36 +1,60 @@
 <section class="feed-layout">
   <div class="feed-main">
+    <!-- Header -->
     <div class="feed-hero sb-card">
-      <p class="feed-kicker">Public feed</p>
-      <h1>Community timeline</h1>
-      <p>Posts are shown in a social-style stream, similar to Facebook cards.</p>
+      <div class="flex items-center gap-3">
+        <button
+          type="button"
+          (click)="goBack()"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 transition hover:bg-slate-100"
+          aria-label="Go back"
+        >
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7"
+            ></path>
+          </svg>
+        </button>
+        <div>
+          <p class="feed-kicker">Group Posts</p>
+          <h1>{{ group?.title || 'Loading...' }}</h1>
+          <p *ngIf="group" class="mt-2 text-sm text-slate-600">
+            {{ group.description }}
+          </p>
+        </div>
+      </div>
     </div>
 
-    <div *ngIf="loading" class="sb-card feed-state">Loading feed...</div>
+    <!-- Loading State -->
+    <div *ngIf="loading" class="sb-card feed-state">Loading group posts...</div>
 
+    <!-- Error State -->
     <p *ngIf="errorMessage && !loading" class="feed-error">{{ errorMessage }}</p>
 
+    <!-- Empty State -->
     <p *ngIf="!loading && !errorMessage && posts.length === 0" class="sb-card feed-state">
-      No posts available in feed.
+      No posts available in this group yet.
     </p>
 
+    <!-- Posts List -->
     <div class="feed-list" *ngIf="!loading && !errorMessage && posts.length > 0">
       <article *ngFor="let post of posts" class="feed-card sb-card">
         <header class="feed-card-header">
           <div class="feed-avatar">
-            <img [src]="getAuthorAvatar(post)" [alt]="getAuthorName(post)" />
+            <img
+              *ngIf="getAuthorAvatar(post)"
+              [src]="getAuthorAvatar(post)"
+              [alt]="getAuthorName(post)"
+            />
+            <span *ngIf="!getAuthorAvatar(post)">{{ getPostInitial(post) }}</span>
           </div>
           <div class="feed-meta">
             <p class="feed-author">{{ getAuthorName(post) }}</p>
             <p class="feed-date">{{ post.createdAt | date: 'medium' }}</p>
           </div>
-
-          <p
-            *ngIf="getGroupNameForPost(post)"
-            class="ml-auto rounded-full bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-700"
-          >
-            {{ getGroupNameForPost(post) }}
-          </p>
         </header>
 
         <div class="feed-content">
@@ -38,6 +62,7 @@
           <p>{{ post.content }}</p>
         </div>
 
+        <!-- Image Slider -->
         <div
           *ngIf="post.images?.length"
           class="feed-image-slider"
@@ -53,6 +78,7 @@
             </div>
           </div>
 
+          <!-- Image Indicators -->
           <div *ngIf="(post.images?.length || 0) > 1" class="feed-image-indicators">
             <button
               *ngFor="let img of post.images; let i = index"
@@ -64,6 +90,7 @@
             ></button>
           </div>
 
+          <!-- Image Controls -->
           <div *ngIf="(post.images?.length || 0) > 1" class="feed-image-controls">
             <button
               type="button"
@@ -103,42 +130,4 @@
       </article>
     </div>
   </div>
-
-  <aside class="groups-panel">
-    <div class="groups-card sb-card">
-      <div class="groups-card-header">
-        <p class="feed-kicker">Groups</p>
-        <h2>Your groups</h2>
-        <p>Scroll through the groups you are part of and open one to see its posts.</p>
-      </div>
-
-      <div *ngIf="allGroupsLoading" class="groups-state">Loading groups...</div>
-      <div *ngIf="!allGroupsLoading && allGroups.length === 0" class="groups-state">
-        No groups available.
-      </div>
-
-      <div
-        *ngIf="!allGroupsLoading && allGroups.length > 0"
-        class="groups-strip"
-        aria-label="Groups list"
-      >
-        <button
-          *ngFor="let group of allGroups"
-          type="button"
-          class="group-tile"
-          [class.active]="selectedGroupId === group._id"
-          (click)="openGroup(group._id)"
-        >
-          <div class="group-tile-image">
-            <img *ngIf="getGroupImage(group)" [src]="getGroupImage(group)" [alt]="group.title" />
-            <span *ngIf="!getGroupImage(group)">G</span>
-          </div>
-          <div class="group-tile-body">
-            <p class="group-tile-title">{{ group.title }}</p>
-            <p class="group-tile-desc">{{ getGroupSummary(group) }}</p>
-          </div>
-        </button>
-      </div>
-    </div>
-  </aside>
 </section>

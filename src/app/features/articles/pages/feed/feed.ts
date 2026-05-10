@@ -5,6 +5,7 @@ import { Article as ArticleModel } from '../../../../core/models/article.model';
 import { Group as GroupModel } from '../../../../core/models/group.model';
 import { ArticleService } from '../../../../core/services/article';
 import { GroupService } from '../../../../core/services/group';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-feed',
@@ -14,6 +15,9 @@ import { GroupService } from '../../../../core/services/group';
   styleUrl: './feed.css',
 })
 export class Feed implements OnInit, OnDestroy {
+  readonly defaultProfileImage =
+    'https://img.magnific.com/free-psd/contact-icon-illustration-isolated_23-2151903337.jpg?semt=ais_hybrid&w=740&q=80';
+
   posts: ArticleModel[] = [];
   loading = true;
   errorMessage = '';
@@ -42,6 +46,7 @@ export class Feed implements OnInit, OnDestroy {
     private articleService: ArticleService,
     private groupService: GroupService,
     private cdr: ChangeDetectorRef,
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
@@ -107,12 +112,8 @@ export class Feed implements OnInit, OnDestroy {
       .subscribe({
         next: (groups) => {
           this.myGroups = Array.isArray(groups) ? groups : [];
-          if (this.myGroups.length > 0) {
-            this.openGroup(this.myGroups[0]._id);
-          } else {
-            this.selectedGroupId = '';
-            this.selectedGroupPosts = [];
-          }
+          this.selectedGroupId = '';
+          this.selectedGroupPosts = [];
           this.cdr.detectChanges();
         },
         error: (error) => {
@@ -140,9 +141,6 @@ export class Feed implements OnInit, OnDestroy {
           this.allGroups.forEach((group) => {
             this.groupsById.set(group._id, group);
           });
-          if (!this.selectedGroupId && this.allGroups.length > 0) {
-            this.openGroup(this.allGroups[0]._id);
-          }
           this.cdr.detectChanges();
         },
         error: () => {
@@ -157,28 +155,7 @@ export class Feed implements OnInit, OnDestroy {
     if (!groupId) {
       return;
     }
-
-    this.selectedGroupId = groupId;
-    this.selectedGroupPostsLoading = true;
-
-    this.groupService
-      .getGroupPosts(groupId)
-      .pipe(
-        finalize(() => {
-          this.selectedGroupPostsLoading = false;
-          this.cdr.detectChanges();
-        }),
-      )
-      .subscribe({
-        next: (response) => {
-          this.selectedGroupPosts = Array.isArray(response?.data) ? response.data : [];
-          this.cdr.detectChanges();
-        },
-        error: () => {
-          this.selectedGroupPosts = [];
-          this.cdr.detectChanges();
-        },
-      });
+    this.router.navigate(['/feed/group', groupId]);
   }
 
   getAuthorName(post: ArticleModel): string {
@@ -190,10 +167,11 @@ export class Feed implements OnInit, OnDestroy {
 
   getAuthorAvatar(post: ArticleModel): string | null {
     if (!post.author || typeof post.author === 'string') {
-      return null;
+      return this.defaultProfileImage;
     }
 
-    return post.author.image || post.author.profileImage || post.author.avatar || null;
+    const profileImg = post.author.profileImg?.trim();
+    return profileImg ? profileImg : this.defaultProfileImage;
   }
 
 
@@ -209,6 +187,11 @@ export class Feed implements OnInit, OnDestroy {
     getGroupForPost(post: ArticleModel): GroupModel | undefined {
       const groupId = typeof post.group === 'string' ? post.group : (post.group as any)?._id;
       return groupId ? this.groupsById.get(groupId) : undefined;
+    }
+
+    getGroupNameForPost(post: ArticleModel): string {
+      const group = this.getGroupForPost(post);
+      return group?.title || '';
     }
 
     getGroupImage(group: GroupModel): string {

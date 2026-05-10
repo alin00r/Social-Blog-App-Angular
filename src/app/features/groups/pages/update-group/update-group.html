@@ -1,0 +1,127 @@
+<div class="mx-auto min-h-screen w-full max-w-2xl space-y-8 px-4 py-6 sm:px-6 lg:px-8">
+  <!-- Header -->
+  <header
+    class="overflow-hidden rounded-[28px] border border-slate-200/80 bg-white/90 p-6 shadow-sm backdrop-blur sm:p-8"
+  >
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div class="flex-1">
+        <p class="mb-2 text-xs font-semibold uppercase tracking-[0.24em] text-blue-600">
+          Update group
+        </p>
+        <h1 class="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+          Edit Group Details
+        </h1>
+        <p class="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
+          Update the group title, description, and image.
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Current Group Info -->
+  <article
+    *ngIf="currentGroup && !loading"
+    class="rounded-[24px] border border-blue-100 bg-blue-50/70 p-5 shadow-sm"
+  >
+    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-blue-700">Current group</p>
+    <h2 class="mt-2 text-lg font-semibold text-slate-900">{{ currentGroup.title }}</h2>
+    <p class="mt-2 text-sm text-slate-600">{{ currentGroup.description }}</p>
+  </article>
+
+  <!-- Loading State -->
+  <article
+    *ngIf="loading && !currentGroup"
+    class="rounded-[24px] border border-slate-200 bg-slate-50 p-5 shadow-sm"
+  >
+    <p class="text-sm font-medium text-slate-600">Loading group data...</p>
+  </article>
+
+  <!-- Error Message -->
+  <article
+    *ngIf="errorMessage"
+    class="rounded-[24px] border border-red-200 bg-red-50 p-5 shadow-sm"
+  >
+    <p class="text-sm font-medium text-red-700">{{ errorMessage }}</p>
+  </article>
+
+  <!-- Update Form -->
+  <article
+    *ngIf="currentGroup && !loading"
+    class="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm"
+  >
+    <div class="mb-5">
+      <h2 class="text-lg font-semibold text-slate-900">Update group</h2>
+      <p class="mt-1 text-sm text-slate-500">Edit the group information below.</p>
+    </div>
+
+    <form [formGroup]="updateGroupForm" (ngSubmit)="submit()" class="space-y-4">
+      <div>
+        <label class="mb-2 block text-sm font-medium text-slate-700">Title</label>
+        <input
+          class="h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+          type="text"
+          formControlName="title"
+          placeholder="Group title"
+        />
+        <p
+          *ngIf="
+            updateGroupForm.get('title')?.invalid &&
+            (updateGroupForm.get('title')?.dirty || updateGroupForm.get('title')?.touched)
+          "
+          class="mt-1 text-xs text-red-600"
+        >
+          Title is required
+        </p>
+      </div>
+
+      <div>
+        <label class="mb-2 block text-sm font-medium text-slate-700">Description</label>
+        <textarea
+          class="min-h-[120px] w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+          rows="4"
+          formControlName="description"
+          placeholder="Group description"
+        ></textarea>
+        <p
+          *ngIf="
+            updateGroupForm.get('description')?.invalid &&
+            (updateGroupForm.get('description')?.dirty ||
+              updateGroupForm.get('description')?.touched)
+          "
+          class="mt-1 text-xs text-red-600"
+        >
+          Description is required
+        </p>
+      </div>
+
+      <div>
+        <label class="mb-2 block text-sm font-medium text-slate-700">Update image (optional)</label>
+        <input
+          class="block h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-200"
+          type="file"
+          accept="image/*"
+          (change)="onImageSelected($event)"
+        />
+      </div>
+
+      <div class="flex flex-wrap gap-3 pt-2">
+        <button
+          type="submit"
+          [disabled]="loading || updateGroupForm.invalid"
+          class="inline-flex h-11 items-center justify-center rounded-xl bg-slate-900 px-5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {{ loading ? 'Updating...' : 'Update group' }}
+        </button>
+
+        <button
+          type="button"
+          (click)="goBack()"
+          [disabled]="loading"
+          class="inline-flex h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-5 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+  </article>
+</div>

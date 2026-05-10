@@ -13,6 +13,8 @@ import { User } from '../../../../core/models/user.model';
 })
 export class Users implements OnInit {
   private fb = inject(FormBuilder);
+  readonly defaultProfileImage =
+    'https://img.magnific.com/free-psd/contact-icon-illustration-isolated_23-2151903337.jpg?semt=ais_hybrid&w=740&q=80';
 
   currentUser: User | null = null;
   profileLoading = false;
@@ -61,6 +63,11 @@ export class Users implements OnInit {
   onProfileImageChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.selectedProfileImage = input.files?.[0] || null;
+  }
+
+  getProfileImageUrl(): string {
+    const profileImg = this.currentUser?.profileImg?.trim();
+    return profileImg ? profileImg : this.defaultProfileImage;
   }
 
   updateProfile(): void {

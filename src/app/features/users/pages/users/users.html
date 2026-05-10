@@ -15,15 +15,8 @@
     <div class="sb-card space-y-6 rounded-3xl p-6">
       <div class="flex items-center justify-between gap-4 border-b border-[#d7e3ff] pb-5">
         <div class="flex items-center gap-4">
-          <div
-            *ngIf="currentUser.image || currentUser.profileImage || currentUser.avatar"
-            class="profile-avatar-large"
-          >
-            <img
-              [src]="currentUser.image || currentUser.profileImage || currentUser.avatar"
-              [alt]="currentUser.name"
-              class="profile-avatar-img"
-            />
+          <div class="profile-avatar-large">
+            <img [src]="getProfileImageUrl()" [alt]="currentUser.name" class="profile-avatar-img" />
           </div>
           <div>
             <p class="text-sm text-[#64728f]">Signed in as</p>
@@ -33,7 +26,7 @@
         </div>
         <div class="rounded-2xl border border-[#d7e3ff] bg-[#f4f8ff] px-4 py-3 text-right">
           <p class="text-xs uppercase tracking-[0.2em] text-[#64728f]">Role</p>
-          <p class="text-sm font-semibold text-[#29406b]">{{ currentUser.role || 'user' }}</p>
+          <p class="text-sm font-semibold text-[#29406b]">{{ currentUser.role }}</p>
         </div>
       </div>
 

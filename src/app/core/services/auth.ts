@@ -23,7 +23,10 @@ interface MeResponse {
     _id: string;
     name: string;
     email: string;
-    role: string;
+    profileImg?: string;
+    role?: string;
+    active?: boolean;
+    profileImgId?: string;
   };
 }
 
@@ -33,7 +36,8 @@ interface UpdateMeResponse {
     _id: string;
     name: string;
     email: string;
-    role: string;
+    profileImg?: string;
+    role?: string;
   };
 }
 
@@ -210,7 +214,8 @@ export class Auth {
         name: response.data.name,
         username: response.data.name,
         email: response.data.email,
-        role: response.data.role,
+        profileImg: response.data.profileImg,
+        role: response.data.role || 'user',
       })),
       tap((normalizedUser) => {
         localStorage.setItem(this.userStorageKey, JSON.stringify(normalizedUser));
@@ -240,7 +245,8 @@ export class Auth {
         name: response.data.name,
         username: response.data.name,
         email: response.data.email,
-        role: response.data.role,
+        profileImg: response.data.profileImg,
+        role: response.data.role || 'user',
       })),
       tap((normalizedUser) => {
         localStorage.setItem(this.userStorageKey, JSON.stringify(normalizedUser));

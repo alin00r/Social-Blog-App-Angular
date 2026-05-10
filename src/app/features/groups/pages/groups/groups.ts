@@ -1,9 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 import { Article } from '../../../../core/models/article.model';
 import { Group } from '../../../../core/models/group.model';
+import { Auth } from '../../../../core/services/auth';
 import { GroupService } from '../../../../core/services/group';
 
 @Component({
@@ -15,22 +17,14 @@ import { GroupService } from '../../../../core/services/group';
 })
 export class GroupsPage implements OnInit {
   groups: Group[] = [];
-  isUpdateGroupOpen = false;
+  myGroups: Group[] = [];
   groupsLoading = false;
   groupsError = '';
   groupsSuccess = '';
 
-  createTitle = '';
-  createDescription = '';
-  createGroupImgFile: File | null = null;
-
-  groupId = '';
   selectedGroup: Group | null = null;
-
-  updateTitle = '';
-  updateDescription = '';
-  updateGroupImgFile: File | null = null;
-
+  groupId = '';
+  addMemberGroupId = '';
   memberUserId = '';
   removeMemberUserId = '';
   permissionUserId = '';
@@ -43,11 +37,43 @@ export class GroupsPage implements OnInit {
 
   constructor(
     private groupService: GroupService,
+    private authService: Auth,
     private cdr: ChangeDetectorRef,
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
     this.loadAllGroups();
+    this.loadMyGroups();
+  }
+
+  openCreateGroupPage(): void {
+    this.router.navigate(['/groups/create']);
+  }
+
+  loadMyGroups(): void {
+    this.groupService
+      .getMyGroups()
+      .pipe(
+        finalize(() => {
+          this.cdr.detectChanges();
+        }),
+      )
+      .subscribe({
+        next: (groups) => {
+          this.myGroups = Array.isArray(groups) ? groups : [];
+
+          if (!this.addMemberGroupId && this.myGroups.length > 0) {
+            this.addMemberGroupId = this.myGroups[0]._id;
+          }
+
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.myGroups = [];
+          this.cdr.detectChanges();
+        },
+      });
   }
 
   loadAllGroups(): void {
@@ -78,77 +104,34 @@ export class GroupsPage implements OnInit {
   }
 
   selectGroup(group: Group): void {
-    this.selectedGroup = group;
-    this.isUpdateGroupOpen = true;
-    this.groupId = group._id;
-    this.updateTitle = group.title;
-    this.updateDescription = group.description;
-    this.groupsSuccess = 'Group selected.';
-    this.groupsError = '';
+    this.router.navigate(['/groups/update', group._id]);
+  }
+
+  isGroupAdmin(group: Group): boolean {
+    const currentUser = this.authService.getCurrentUser();
+    const currentUserId = currentUser?.id || currentUser?._id;
+
+    if (!currentUserId || !Array.isArray(group.admins)) {
+      return false;
+    }
+
+    return group.admins.some((admin) => {
+      if (!admin) {
+        return false;
+      }
+
+      if (typeof admin === 'string') {
+        return admin === currentUserId;
+      }
+
+      const adminRef = admin as { _id?: string; id?: string };
+      return adminRef._id === currentUserId || adminRef.id === currentUserId;
+    });
   }
 
   deleteGroupFromCard(group: Group): void {
     this.groupId = group._id;
     this.deleteGroup();
-  }
-
-  closeUpdateGroup(): void {
-    this.isUpdateGroupOpen = false;
-  }
-
-  onCreateGroupImageSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.createGroupImgFile = input.files && input.files.length > 0 ? input.files[0] : null;
-  }
-
-  onUpdateGroupImageSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.updateGroupImgFile = input.files && input.files.length > 0 ? input.files[0] : null;
-  }
-
-  createGroup(): void {
-    if (!this.createTitle.trim() || !this.createDescription.trim()) {
-      this.groupsError = 'Group title and description are required.';
-      this.groupsSuccess = '';
-      return;
-    }
-
-    this.groupsLoading = true;
-    this.groupsError = '';
-    this.groupsSuccess = '';
-
-    this.groupService
-      .createGroup({
-        title: this.createTitle.trim(),
-        description: this.createDescription.trim(),
-        groupImg: this.createGroupImgFile,
-      })
-      .pipe(
-        finalize(() => {
-          this.groupsLoading = false;
-          this.cdr.detectChanges();
-        }),
-      )
-      .subscribe({
-        next: (response) => {
-          this.selectedGroup = response.data;
-          this.groupId = response.data._id;
-          this.updateTitle = response.data.title;
-          this.updateDescription = response.data.description;
-          this.createTitle = '';
-          this.createDescription = '';
-          this.createGroupImgFile = null;
-          this.groupsSuccess = 'Group created and selected.';
-          this.groupsError = '';
-          this.upsertGroup(response.data);
-          this.cdr.detectChanges();
-        },
-        error: (error) => {
-          this.groupsError = error?.error?.message || 'Failed to create group.';
-          this.groupsSuccess = '';
-          this.cdr.detectChanges();
-        },
-      });
   }
 
   loadGroup(): void {
@@ -173,65 +156,13 @@ export class GroupsPage implements OnInit {
       .subscribe({
         next: (response) => {
           this.selectedGroup = response.data;
-          this.isUpdateGroupOpen = true;
-          this.updateTitle = response.data.title;
-          this.updateDescription = response.data.description;
+          this.addMemberGroupId = response.data._id;
           this.groupsSuccess = 'Group loaded successfully.';
           this.groupsError = '';
           this.cdr.detectChanges();
         },
         error: (error) => {
           this.groupsError = error?.error?.message || 'Failed to load group.';
-          this.groupsSuccess = '';
-          this.cdr.detectChanges();
-        },
-      });
-  }
-
-  updateGroup(): void {
-    if (!this.groupId.trim()) {
-      this.groupsError = 'Enter a group ID first.';
-      this.groupsSuccess = '';
-      return;
-    }
-
-    const payload = {
-      title: this.updateTitle.trim() || undefined,
-      description: this.updateDescription.trim() || undefined,
-      groupImg: this.updateGroupImgFile,
-    };
-
-    if (!payload.title && !payload.description && !payload.groupImg) {
-      this.groupsError = 'Please provide at least one field to update.';
-      this.groupsSuccess = '';
-      return;
-    }
-
-    this.groupsLoading = true;
-    this.groupsError = '';
-    this.groupsSuccess = '';
-
-    this.groupService
-      .updateGroup(this.groupId.trim(), payload)
-      .pipe(
-        finalize(() => {
-          this.groupsLoading = false;
-          this.cdr.detectChanges();
-        }),
-      )
-      .subscribe({
-        next: (response) => {
-          this.selectedGroup = response.data;
-          this.updateTitle = response.data.title;
-          this.updateDescription = response.data.description;
-          this.updateGroupImgFile = null;
-          this.groupsSuccess = 'Group updated successfully.';
-          this.groupsError = '';
-          this.upsertGroup(response.data);
-          this.cdr.detectChanges();
-        },
-        error: (error) => {
-          this.groupsError = error?.error?.message || 'Failed to update group.';
           this.groupsSuccess = '';
           this.cdr.detectChanges();
         },
@@ -260,11 +191,13 @@ export class GroupsPage implements OnInit {
       .subscribe({
         next: () => {
           this.selectedGroup = null;
-          this.isUpdateGroupOpen = false;
           this.groupPosts = [];
           this.selectedGroupPost = null;
           this.groupsSuccess = 'Group deleted successfully.';
           this.groupsError = '';
+          if (this.addMemberGroupId === this.groupId.trim()) {
+            this.addMemberGroupId = this.myGroups.find((group) => group._id !== this.groupId.trim())?._id || '';
+          }
           this.removeGroupById(this.groupId.trim());
           this.groupId = '';
           this.cdr.detectChanges();
@@ -278,8 +211,8 @@ export class GroupsPage implements OnInit {
   }
 
   addMember(): void {
-    if (!this.groupId.trim() || !this.memberUserId.trim()) {
-      this.groupsError = 'Group ID and user ID are required.';
+    if (!this.addMemberGroupId.trim() || !this.memberUserId.trim()) {
+      this.groupsError = 'Group and user ID are required.';
       this.groupsSuccess = '';
       return;
     }
@@ -289,7 +222,7 @@ export class GroupsPage implements OnInit {
     this.groupsSuccess = '';
 
     this.groupService
-      .addUserToGroup(this.groupId.trim(), this.memberUserId.trim())
+      .addUserToGroup(this.addMemberGroupId.trim(), this.memberUserId.trim())
       .pipe(
         finalize(() => {
           this.groupsLoading = false;
@@ -300,6 +233,7 @@ export class GroupsPage implements OnInit {
         next: (response) => {
           this.selectedGroup = response.data;
           this.memberUserId = '';
+          this.addMemberGroupId = response.data._id || this.addMemberGroupId;
           this.groupsSuccess = 'User added to group.';
           this.groupsError = '';
           this.upsertGroup(response.data);
@@ -480,5 +414,43 @@ export class GroupsPage implements OnInit {
 
   private removeGroupById(groupId: string): void {
     this.groups = this.groups.filter((group) => group._id !== groupId);
+  }
+
+  getSelectedGroupMemberOptions(): Array<{ id: string; label: string }> {
+    const members = this.selectedGroup?.members;
+
+    if (!Array.isArray(members)) {
+      return [];
+    }
+
+    return members
+      .map((member) => {
+        if (!member) {
+          return null;
+        }
+
+        if (typeof member === 'string') {
+          return { id: member, label: member };
+        }
+
+        const user = member as {
+          _id?: string;
+          id?: string;
+          name?: string;
+          username?: string;
+          email?: string;
+        };
+        const id = user._id || user.id || '';
+
+        if (!id) {
+          return null;
+        }
+
+        return {
+          id,
+          label: user.name || user.username || user.email || id,
+        };
+      })
+      .filter((member): member is { id: string; label: string } => !!member);
   }
 }

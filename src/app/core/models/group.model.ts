@@ -3,6 +3,14 @@ export interface GroupMemberPermission {
   permissions: string[];
 }
 
+export interface GroupMemberRef {
+  _id?: string;
+  id?: string;
+  name?: string;
+  username?: string;
+  email?: string;
+}
+
 export interface Group {
   _id: string;
   title: string;
@@ -11,7 +19,7 @@ export interface Group {
   groupImgId?: string;
   createdBy?: string;
   admins?: string[];
-  members?: string[];
+  members?: Array<string | GroupMemberRef>;
   memberPermissions?: GroupMemberPermission[];
   createdAt?: string;
   updatedAt?: string;
