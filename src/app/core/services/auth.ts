@@ -114,9 +114,7 @@ export class Auth {
   logout(): Observable<MessageResponse> {
     return this.http.post<MessageResponse>(`${this.apiUrl}/logout`, {}).pipe(
       tap(() => {
-        localStorage.removeItem(this.userStorageKey);
-        localStorage.removeItem(this.tokenStorageKey);
-        this.currentUserSubject.next(null);
+        this.clearSession();
         this.toast.info('You have been logged out', 'Logout');
       }),
       catchError((error) => {
@@ -125,6 +123,17 @@ export class Auth {
         return throwError(() => error);
       }),
     );
+  }
+
+  logoutDueToTokenExpiration(): void {
+    this.clearSession();
+    this.toast.info('Your session has expired. Please log in again.', 'Session Expired');
+  }
+
+  private clearSession(): void {
+    localStorage.removeItem(this.userStorageKey);
+    localStorage.removeItem(this.tokenStorageKey);
+    this.currentUserSubject.next(null);
   }
 
   forgotPassword(payload: { email: string }): Observable<MessageResponse> {
@@ -265,9 +274,7 @@ export class Auth {
     return this.http.patch<ChangePasswordResponse>(`${appConfig.apiBaseUrl}/users/changeMyPassword`, payload).pipe(
       tap(() => {
         // Force re-authentication after password change.
-        localStorage.removeItem(this.userStorageKey);
-        localStorage.removeItem(this.tokenStorageKey);
-        this.currentUserSubject.next(null);
+        this.clearSession();
         this.toast.success('Password changed successfully. Please log in again.', 'Success');
       }),
       catchError((error) => {
@@ -281,9 +288,7 @@ export class Auth {
   deleteMe(): Observable<void> {
     return this.http.delete<void>(`${appConfig.apiBaseUrl}/users/deleteMe`).pipe(
       tap(() => {
-        localStorage.removeItem(this.userStorageKey);
-        localStorage.removeItem(this.tokenStorageKey);
-        this.currentUserSubject.next(null);
+        this.clearSession();
         this.toast.info('Your account has been deactivated.', 'Account Removed');
       }),
       catchError((error) => {
