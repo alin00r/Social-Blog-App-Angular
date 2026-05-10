@@ -20,6 +20,11 @@ const routes: Routes = [
   { path: 'reset-password', component: ResetPassword },
   { path: 'users', component: Users, canActivate: [authGuard] },
   {
+    path: 'users/:id',
+    loadComponent: () =>
+      import('./features/users/pages/user-profile/user-profile').then((m) => m.UserProfilePage),
+  },
+  {
     path: 'feed/group/:id',
     loadComponent: () =>
       import('./features/articles/pages/group-feed/group-feed').then((m) => m.GroupFeed),
@@ -37,6 +42,11 @@ const routes: Routes = [
     loadComponent: () =>
       import('./features/groups/pages/update-group/update-group').then((m) => m.UpdateGroupPage),
     canActivate: [authGuard],
+  },
+  {
+    path: 'groups/:id',
+    loadComponent: () =>
+      import('./features/groups/pages/group-profile/group-profile').then((m) => m.GroupProfilePage),
   },
   {
     path: 'groups',

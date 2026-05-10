@@ -80,7 +80,10 @@ export class Auth {
           username: payload.name,
           email: payload.email,
           role: 'user',
+          profileImg: undefined,
         });
+        // Fetch the full user profile with image after successful registration
+        this.refreshCurrentUser();
         this.toast.success('Registration successful!', 'Welcome');
       }),
       catchError((error) => {
@@ -94,16 +97,30 @@ export class Auth {
   login(payload: { email: string; password: string }): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, payload).pipe(
       tap((res) => {
+        // Check if account is still active
+        if (res.data?.user && res.data.user.active === false) {
+          this.clearSession();
+          this.toast.error('Your account has been deactivated. Please contact support to reactivate.', 'Account Deactivated');
+          throw new Error('Account deactivated');
+        }
+
         const storedUser = this.getStoredUser();
         this.saveSession(res, {
           email: payload.email,
           name: storedUser?.name || this.deriveNameFromEmail(payload.email),
           username: storedUser?.username || storedUser?.name || this.deriveNameFromEmail(payload.email),
           role: storedUser?.role || 'user',
+          profileImg: storedUser?.profileImg,
         });
+
+        // Fetch the full user profile with image after successful login
+        this.refreshCurrentUser();
         this.toast.success('Login successful!', 'Welcome Back');
       }),
       catchError((error) => {
+        if (error.message === 'Account deactivated') {
+          return throwError(() => error);
+        }
         const message = error?.error?.message || 'Login failed. Please try again.';
         this.toast.error(message, 'Login Error');
         return throwError(() => error);
@@ -171,7 +188,10 @@ export class Auth {
           name: storedUser?.name || this.deriveNameFromEmail(payload.email),
           username: storedUser?.username || storedUser?.name || this.deriveNameFromEmail(payload.email),
           role: storedUser?.role || 'user',
+          profileImg: storedUser?.profileImg,
         });
+        // Fetch the full user profile with image after successful password reset
+        this.refreshCurrentUser();
         this.toast.success('Password reset successfully!', 'Success');
       }),
       catchError((error) => {
@@ -217,21 +237,34 @@ export class Auth {
 
   getCurrentUserProfile(silent = false): Observable<User> {
     return this.http.get<MeResponse>(`${appConfig.apiBaseUrl}/users/getMe`).pipe(
-      map((response) => ({
-        _id: response.data._id,
-        id: response.data._id || this.getUserIdFromToken(),
-        name: response.data.name,
-        username: response.data.name,
-        email: response.data.email,
-        profileImg: response.data.profileImg,
-        role: response.data.role || 'user',
-      })),
+      map((response) => {
+        // Check if account is deactivated
+        if (response.data.active === false) {
+          throw new Error('Account deactivated');
+        }
+        return {
+          _id: response.data._id,
+          id: response.data._id || this.getUserIdFromToken(),
+          name: response.data.name,
+          username: response.data.name,
+          email: response.data.email,
+          profileImg: response.data.profileImg,
+          profileImgId: response.data.profileImgId,
+          role: response.data.role || 'user',
+          active: response.data.active,
+        };
+      }),
       tap((normalizedUser) => {
         localStorage.setItem(this.userStorageKey, JSON.stringify(normalizedUser));
         this.currentUserSubject.next(normalizedUser);
       }),
       catchError((error) => {
-        if (!silent) {
+        if (error.message === 'Account deactivated') {
+          this.clearSession();
+          if (!silent) {
+            this.toast.error('Your account has been deactivated. Please contact support.', 'Account Deactivated');
+          }
+        } else if (!silent) {
           const message = error?.error?.message || 'Failed to load user profile.';
           this.toast.error(message, 'Profile Error');
         }

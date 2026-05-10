@@ -1,0 +1,83 @@
+<div class="user-profile-container">
+  <div class="user-header">
+    <button (click)="goBack()" class="back-button" aria-label="Go back">← Back</button>
+  </div>
+
+  <div *ngIf="userLoading" class="loading-state">
+    <p>Loading user profile...</p>
+  </div>
+
+  <div *ngIf="errorMessage && !userLoading" class="error-state">
+    <p class="error-message">{{ errorMessage }}</p>
+    <button (click)="goBack()" class="secondary-button">Go Back</button>
+  </div>
+
+  <div *ngIf="user && !userLoading" class="user-content">
+    <!-- User Header -->
+    <div class="sb-card user-header-card rounded-3xl p-6">
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-6">
+          <div class="profile-image-container">
+            <img [src]="getProfileImageUrl()" [alt]="user.name" class="profile-image" />
+          </div>
+          <div class="user-info">
+            <h1 class="text-3xl font-bold text-[#1b2742]">{{ user.name }}</h1>
+            <p class="mt-1 text-[#64728f]">@{{ user.username }}</p>
+            <p class="mt-2 text-[#4f5f7d]">{{ user.email }}</p>
+            <div class="mt-4">
+              <span class="badge">{{ user.role }}</span>
+            </div>
+          </div>
+        </div>
+
+        <button
+          *ngIf="isCurrentUser()"
+          (click)="editProfile()"
+          class="primary-button"
+          aria-label="Edit profile"
+        >
+          Edit Profile
+        </button>
+      </div>
+    </div>
+
+    <!-- User Articles Section -->
+    <div class="sb-card articles-card rounded-3xl p-6">
+      <h2 class="text-xl font-bold text-[#1b2742]">Articles by {{ user.name }}</h2>
+      <div class="mt-6">
+        <div *ngIf="articlesLoading" class="loading-state">
+          <p>Loading articles...</p>
+        </div>
+
+        <div
+          *ngIf="!articlesLoading && userArticles && userArticles.length > 0"
+          class="articles-grid"
+        >
+          <div
+            *ngFor="let article of userArticles"
+            class="article-card rounded-xl border border-[#d7e3ff] p-4"
+          >
+            <h3 class="text-lg font-semibold text-[#1b2742] truncate">{{ article.title }}</h3>
+            <p class="mt-2 line-clamp-2 text-sm text-[#64728f]">{{ article.content }}</p>
+            <div class="mt-4 flex items-center justify-between">
+              <span class="text-xs text-[#4f5f7d]">{{ article.createdAt | date: 'short' }}</span>
+              <button
+                (click)="viewArticle(article._id)"
+                class="text-sm text-[#2f6cf6] font-medium hover:underline"
+              >
+                View →
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div
+          *ngIf="!articlesLoading && (!userArticles || userArticles.length === 0)"
+          class="empty-state"
+        >
+          <p class="text-[#64728f]">{{ user.name }} hasn't published any articles yet</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

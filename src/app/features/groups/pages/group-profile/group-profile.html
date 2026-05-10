@@ -1,0 +1,107 @@
+<div class="group-profile-container">
+  <div class="group-header">
+    <button (click)="goBack()" class="back-button" aria-label="Go back">← Back</button>
+  </div>
+
+  <div *ngIf="groupLoading" class="loading-state">
+    <p>Loading group profile...</p>
+  </div>
+
+  <div *ngIf="errorMessage && !groupLoading" class="error-state">
+    <p class="error-message">{{ errorMessage }}</p>
+    <button (click)="goBack()" class="secondary-button">Go Back</button>
+  </div>
+
+  <div *ngIf="group && !groupLoading" class="group-content">
+    <!-- Group Header -->
+    <div class="sb-card group-header-card rounded-3xl p-6">
+      <div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+        <div class="flex items-start gap-6">
+          <div class="group-image-container">
+            <img [src]="getGroupImageUrl()" [alt]="group.title" class="group-image" />
+          </div>
+          <div class="group-info">
+            <h1 class="text-3xl font-bold text-[#1b2742]">{{ group.title }}</h1>
+            <p class="mt-2 text-[#64728f]">{{ group.description }}</p>
+            <div class="mt-4 flex gap-2">
+              <span class="badge">{{ group.members?.length || 0 }} Members</span>
+              <span class="badge" *ngIf="isGroupAdmin()">Admin</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <button
+            *ngIf="isGroupAdmin()"
+            (click)="editGroup()"
+            class="primary-button"
+            aria-label="Edit group"
+          >
+            Edit Group
+          </button>
+          <button
+            (click)="navigateToGroupFeed()"
+            class="secondary-button"
+            aria-label="View group feed"
+          >
+            View Feed
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Group Stats -->
+    <div class="grid gap-4 sm:grid-cols-3">
+      <div class="sb-card stat-card rounded-2xl p-4">
+        <p class="text-sm text-[#64728f]">Total Members</p>
+        <p class="mt-1 text-2xl font-bold text-[#1b2742]">{{ group.members?.length || 0 }}</p>
+      </div>
+      <div class="sb-card stat-card rounded-2xl p-4">
+        <p class="text-sm text-[#64728f]">Admins</p>
+        <p class="mt-1 text-2xl font-bold text-[#1b2742]">{{ group.admins?.length || 0 }}</p>
+      </div>
+      <div class="sb-card stat-card rounded-2xl p-4">
+        <p class="text-sm text-[#64728f]">Created</p>
+        <p class="mt-1 text-sm font-semibold text-[#1b2742]">
+          {{ group.createdAt | date: 'short' }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Members & Permissions Section -->
+    <div class="sb-card members-card rounded-3xl p-6">
+      <h2 class="text-xl font-bold text-[#1b2742]">
+        Members & Permissions ({{ memberPermissions.length }})
+      </h2>
+      <div class="mt-4">
+        <div *ngIf="memberPermissions && memberPermissions.length > 0" class="members-grid">
+          <div
+            *ngFor="let member of memberPermissions"
+            class="member-card rounded-xl border border-[#d7e3ff] p-4"
+          >
+            <div class="flex items-center justify-between mb-2">
+              <p class="font-medium text-[#1b2742] truncate">{{ member.userId }}</p>
+              <span *ngIf="member.isAdmin" class="badge-admin text-xs font-semibold">Admin</span>
+            </div>
+            <div class="mt-3 flex flex-wrap gap-1">
+              <span
+                *ngFor="let perm of member.permissions"
+                class="permission-badge text-xs px-2 py-1 rounded-full"
+                [ngClass]="{
+                  'bg-green-100 text-green-700': perm === 'read',
+                  'bg-blue-100 text-blue-700': perm === 'write',
+                  'bg-red-100 text-red-700': perm === 'delete',
+                }"
+              >
+                {{ perm }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="!memberPermissions || memberPermissions.length === 0" class="empty-state">
+          <p class="text-[#64728f]">No members found</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

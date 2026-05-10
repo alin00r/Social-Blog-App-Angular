@@ -6,4 +6,6 @@ export interface User {
   email: string;
   role?: string;
   profileImg?: string;
+  profileImgId?: string;
+  active?: boolean;
 }
