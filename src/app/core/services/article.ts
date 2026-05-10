@@ -41,6 +41,16 @@ export class ArticleService {
     );
   }
 
+  getArticleById(id: string): Observable<ArticleResponse> {
+    return this.http.get<ArticleResponse>(`${this.apiUrl}/${id}`).pipe(
+      catchError((error) => {
+        const message = error?.error?.message || 'Failed to load article. Please try again.';
+        this.toast.error(message, 'Loading Error');
+        return throwError(() => error);
+      }),
+    );
+  }
+
   getFeed(): Observable<FeedResponse> {
     return this.http.get<FeedResponse>(`${this.apiUrl}/feed`).pipe(
       catchError((error) => {
@@ -72,15 +82,36 @@ export class ArticleService {
     );
   }
 
-  updateArticle(id: string, payload: { title: string; content: string; group?: string }): Observable<ArticleResponse> {
-    return this.http.put<ArticleResponse>(`${this.apiUrl}/${id}`, payload).pipe(
-      tap(() => {
+  updateArticle(
+    id: string,
+    payload: { title: string; content: string; group?: string; images?: File[] },
+  ): Observable<ArticleResponse> {
+    const formData = new FormData();
+    formData.append('title', payload.title);
+    formData.append('content', payload.content);
+    if (payload.group) {
+      formData.append('group', payload.group);
+    }
+    // Only append new images if they exist (backend keeps existing images)
+    if (payload.images && payload.images.length > 0) {
+      payload.images.forEach((image) => {
+        formData.append('images', image);
+      });
+    }
+
+    return this.http.patch<ArticleResponse>(`${this.apiUrl}/${id}`, formData).pipe(
+      tap((response) => {
         this.toast.success('Article updated successfully!', 'Success');
       }),
       catchError((error) => {
-        const message = error?.error?.message || 'Failed to update article. Please try again.';
+        let message = 'Failed to update article. Please try again.';
+        if (error?.error?.message) {
+          message = error.error.message;
+        } else if (error?.error?.data?.message) {
+          message = error.error.data.message;
+        }
         this.toast.error(message, 'Update Error');
-        return throwError(() => error);
+        return throwError(() => ({ ...error, displayMessage: message }));
       }),
     );
   }

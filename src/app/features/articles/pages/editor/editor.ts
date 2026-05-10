@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { finalize } from 'rxjs/operators';
 import { Article as ArticleModel } from '../../../../core/models/article.model';
 import { Group } from '../../../../core/models/group.model';
 import { ArticleService } from '../../../../core/services/article';
@@ -25,7 +26,8 @@ export class Editor implements OnInit {
   selectedImages: File[] = [];
   selectedImagePreviews: { file: File; preview: string }[] = [];
   myGroups: Group[] = [];
-  private currentArticle: ArticleModel | null = null;
+  currentArticle: ArticleModel | null = null;
+  private articleLoadTimeoutId: ReturnType<typeof window.setTimeout> | null = null;
 
   editorForm = this.createForm();
 
@@ -74,20 +76,31 @@ export class Editor implements OnInit {
     const formValue = this.editorForm.getRawValue();
 
     if (this.isEditMode) {
+      // Only send new images - backend keeps existing ones
       this.articleService
         .updateArticle(this.articleId, {
           title: formValue.title as string,
           content: formValue.content as string,
           group: (formValue.group as string) || undefined,
+          images: this.selectedImages, // Only new images selected by user
         })
-        .subscribe({
-          next: () => {
+        .pipe(
+          finalize(() => {
             this.saving = false;
-            this.router.navigate(['/articles']);
+          }),
+        )
+        .subscribe({
+          next: (response) => {
+            // Update local article state with the response
+            this.currentArticle = response.data;
+
+            // Wait a moment to show success, then navigate
+            setTimeout(() => {
+              this.router.navigate(['/articles']);
+            }, 1500);
           },
           error: (error) => {
-            this.saving = false;
-            this.errorMessage = error?.error?.message || 'Failed to update article.';
+            this.errorMessage = error?.displayMessage || error?.error?.message || 'Failed to update article. Please try again.';
           },
         });
       return;
@@ -100,14 +113,19 @@ export class Editor implements OnInit {
         images: this.selectedImages,
         group: (formValue.group as string) || undefined,
       })
+      .pipe(
+        finalize(() => {
+          this.saving = false;
+        }),
+      )
       .subscribe({
         next: () => {
-          this.saving = false;
-          this.router.navigate(['/articles']);
+          setTimeout(() => {
+            this.router.navigate(['/articles']);
+          }, 1500);
         },
         error: (error) => {
-          this.saving = false;
-          this.errorMessage = error?.error?.message || 'Failed to create article.';
+          this.errorMessage = error?.displayMessage || error?.error?.message || 'Failed to create article. Please try again.';
         },
       });
   }
@@ -116,28 +134,52 @@ export class Editor implements OnInit {
     this.loading = true;
     this.errorMessage = '';
 
-    this.articleService.getArticles().subscribe({
-      next: (response) => {
-        this.currentArticle = response.data.find((post) => post._id === this.articleId) || null;
+    if (this.articleLoadTimeoutId) {
+      window.clearTimeout(this.articleLoadTimeoutId);
+    }
 
-        if (!this.currentArticle) {
-          this.errorMessage = 'Article not found.';
+    this.articleLoadTimeoutId = window.setTimeout(() => {
+      if (this.loading) {
+        this.loading = false;
+        this.errorMessage = 'Article is taking longer than expected to load. You can refresh or try again.';
+      }
+    }, 5000);
+
+    this.articleService
+      .getArticleById(this.articleId)
+      .pipe(
+        finalize(() => {
+          if (this.articleLoadTimeoutId) {
+            window.clearTimeout(this.articleLoadTimeoutId);
+            this.articleLoadTimeoutId = null;
+          }
           this.loading = false;
-          return;
-        }
+        }),
+      )
+      .subscribe({
+        next: (response) => {
+          this.currentArticle = response?.data || null;
 
-        this.editorForm.patchValue({
-          title: this.currentArticle.title,
-          content: this.currentArticle.content,
-          group: typeof this.currentArticle.group === 'string' ? this.currentArticle.group : this.currentArticle.group?._id || '',
-        });
-        this.loading = false;
-      },
-      error: (error) => {
-        this.loading = false;
-        this.errorMessage = error?.error?.message || 'Failed to load article.';
-      },
-    });
+          if (!this.currentArticle) {
+            this.errorMessage = 'Article not found.';
+            return;
+          }
+
+          this.editorForm.patchValue({
+            title: this.currentArticle.title,
+            content: this.currentArticle.content,
+            group:
+              typeof this.currentArticle.group === 'string'
+                ? this.currentArticle.group
+                : this.currentArticle.group?._id || '',
+          });
+          this.selectedImages = [];
+          this.selectedImagePreviews = [];
+        },
+        error: (error) => {
+          this.errorMessage = error?.error?.message || 'Failed to load article.';
+        },
+      });
   }
 
   private loadMyGroups(): void {

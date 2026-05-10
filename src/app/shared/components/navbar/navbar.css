@@ -61,7 +61,7 @@
 }
 
 .nav-links {
-  display: none;
+  display: flex;
   align-items: center;
   gap: 0.35rem;
   padding: 0.3rem;
@@ -179,7 +179,7 @@
 
 @media (min-width: 768px) {
   .nav-links {
-    display: inline-flex;
+    display: flex;
   }
 }
 
@@ -194,10 +194,14 @@
   }
 
   .nav-links {
-    order: 3;
     width: 100%;
     overflow-x: auto;
     scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .nav-links a {
+    flex: 0 0 auto;
   }
 
   .nav-links::-webkit-scrollbar {

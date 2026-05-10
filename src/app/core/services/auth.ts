@@ -199,7 +199,7 @@ export class Auth {
       return;
     }
 
-    this.getCurrentUserProfile().subscribe({
+    this.getCurrentUserProfile(true).subscribe({
       next: (user) => {
         const normalizedUser: User = {
           ...user,
@@ -215,7 +215,7 @@ export class Auth {
     });
   }
 
-  getCurrentUserProfile(): Observable<User> {
+  getCurrentUserProfile(silent = false): Observable<User> {
     return this.http.get<MeResponse>(`${appConfig.apiBaseUrl}/users/getMe`).pipe(
       map((response) => ({
         _id: response.data._id,
@@ -231,8 +231,10 @@ export class Auth {
         this.currentUserSubject.next(normalizedUser);
       }),
       catchError((error) => {
-        const message = error?.error?.message || 'Failed to load user profile.';
-        this.toast.error(message, 'Profile Error');
+        if (!silent) {
+          const message = error?.error?.message || 'Failed to load user profile.';
+          this.toast.error(message, 'Profile Error');
+        }
         return throwError(() => error);
       }),
     );
